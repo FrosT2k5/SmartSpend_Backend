@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+const AutoIncrement = require('mongoose-sequence')(mongoose);
 // Schema Definitions
 
 // Create a schema for transactions
@@ -95,6 +95,10 @@ const userAccountSchema = new mongoose.Schema({
 
 // Create a schema for investment options
 const investmentSchema = new mongoose.Schema({
+    investmentId: {
+        type: Number,
+        unique: true,
+    },
     type: {
         type: String,
         enum: ['RD', 'FD', 'MF', 'Gold', 'Real Estate'],
@@ -114,6 +118,8 @@ const investmentSchema = new mongoose.Schema({
     },
     transactions: [transactionSchema],
 }, { timestamps: true });
+
+investmentSchema.plugin(AutoIncrement, { inc_field: 'investmentId' });
 
 
 // Export models
