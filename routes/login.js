@@ -3,7 +3,7 @@ const { User} = require("../db/models");
 
 const router = express.Router();
 
-router.post('/login', async (req, res) => {
+router.post('/', async (req, res) => {
     const { email, password } = req.body;
   
     try {
@@ -19,4 +19,8 @@ router.post('/login', async (req, res) => {
     }
   });
   
-  module.exports = router; 
+router.get('/', async (req, res) => {
+  res.json({"status": "success"});
+});
+
+module.exports = router; 

@@ -3,7 +3,7 @@ var router = express.Router();
 const { User} = require("../db/models");
 
 
-router.post('/register', async (req, res) => {
+router.post('/', async (req, res) => {
     const { name, username, email, password } = req.body;
   
     try {
