@@ -39,7 +39,7 @@ router.post(
      }); 
 
     try {
-        await User.updateOne({ username }, 
+        await User.updateOne( {username: username}, 
             { $push: { investments: investment } }
         );
         res.status(201).json({ message: 'Investment added successfully', investment });
@@ -48,12 +48,23 @@ router.post(
     }
 });
 
+
 // Get All Investments for User
 router.get('/:username/investments', async (req, res) => {
     const { username } = req.params;
+    let investments = await User.findOne({ username }, "investments").lean();
+    investments = investments.investments;
+    console.log(investments)
 
     try {
-        const investments = await Investment.find({ username }); 
+        for (let inv of investments) {
+            delete inv._id;
+            delete inv.__v;
+            for (let transaction of inv.transactions) {
+                delete transaction._id;
+                delete transaction.__v;
+            }
+        }
         res.status(200).json(investments);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching investments', error });
@@ -75,6 +86,7 @@ router.get('/:username/investments/:investmentId', async (req, res) => {
     }
 });
 
+
 // Update Investment
 router.put('/:username/investments/:investmentId', async (req, res) => {
     const { investmentId } = req.params;
@@ -94,6 +106,7 @@ router.put('/:username/investments/:investmentId', async (req, res) => {
         res.status(500).json({ message: 'Error updating investment', error });
     }
 });
+
 
 // Delete Investment
 router.delete('/:username/investments/:investmentId', async (req, res) => {
