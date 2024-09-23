@@ -27,7 +27,7 @@ app.use('/', indexRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/login', loginRouter);
 app.use('/api/register', registerRouter);
-app.use('/api/investments', investmentRouter);
+app.use('/api', investmentRouter);
 app.use('/api/expensetracker', expenseTrackerRouter);
 
 // catch 404 and forward to error handler
@@ -40,7 +40,11 @@ app.use(function(err, req, res, next) {
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
   res.status(err.status || 500);
-  res.render('error');
+  const error = {
+    "status": "error",
+    "errors": err.message,
+  }
+  res.json(error);
 });
 
 module.exports = app;

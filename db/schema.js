@@ -49,6 +49,35 @@ const expenseTrackerSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 
+// Create a schema for investment options
+const investmentSchema = new mongoose.Schema({
+    investmentId: {
+        type: Number,
+        unique: true,
+    },
+    type: {
+        type: String,
+        enum: ['RD', 'FD', 'MF', 'Gold', 'Real Estate'],
+        required: true,
+    },
+    rateOfInterest: {
+        type: Number,
+        required: true,
+    },
+    baseValue: {
+        type: Number,
+        required: true,
+    },
+    currentValue: {
+        type: Number,
+        required: true,
+    },
+    transactions: [transactionSchema],
+}, { timestamps: true });
+
+investmentSchema.plugin(AutoIncrement, { inc_field: 'investmentId' });
+
+
 // Create a schema for user account
 const userAccountSchema = new mongoose.Schema({
     name: {
@@ -90,37 +119,9 @@ const userAccountSchema = new mongoose.Schema({
         default: 0,
     },
     expenseTrackers: [expenseTrackerSchema],
+    investments: [investmentSchema],
 }, { timestamps: true });
-
-
-// Create a schema for investment options
-const investmentSchema = new mongoose.Schema({
-    investmentId: {
-        type: Number,
-        unique: true,
-    },
-    type: {
-        type: String,
-        enum: ['RD', 'FD', 'MF', 'Gold', 'Real Estate'],
-        required: true,
-    },
-    rateOfInterest: {
-        type: Number,
-        required: true,
-    },
-    baseValue: {
-        type: Number,
-        required: true,
-    },
-    currentValue: {
-        type: Number,
-        required: true,
-    },
-    transactions: [transactionSchema],
-}, { timestamps: true });
-
-investmentSchema.plugin(AutoIncrement, { inc_field: 'investmentId' });
 
 
 // Export models
-module.exports = { userAccountSchema, investmentSchema, expenseTrackerSchema };
+module.exports = { userAccountSchema, investmentSchema, expenseTrackerSchema, transactionSchema };

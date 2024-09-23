@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const { userAccountSchema, investmentSchema, expenseTrackerSchema } = require('./schema'); 
+const { userAccountSchema, investmentSchema, expenseTrackerSchema, transactionSchema } = require('./schema'); 
 
 // Load environment variables from .env file
 dotenv.config();
@@ -15,9 +15,11 @@ mongoose.connect(mongoURI)
 const User = mongoose.model('User', userAccountSchema);
 const Investment = mongoose.model('Investment', investmentSchema);
 const ExpenseTracker = mongoose.model('ExpenseTracker', expenseTrackerSchema);
+const Transaction = mongoose.model('Transaction', transactionSchema);
+
 // conn.model('User', UserAccount);
 // conn.model('Investment', Investment);
 // conn.model('ExpenseTracker', ExpenseTracker);
     
-module.exports = { User, Investment, ExpenseTracker };
+module.exports = { User, Investment, ExpenseTracker, Transaction };
 

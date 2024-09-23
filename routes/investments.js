@@ -1,16 +1,47 @@
 const express = require('express');
-const { Investment } = require('../db/models'); // Importing the Investment model
+const { body, validationResult } = require('express-validator');
+const { User, Investment, Transaction } = require('../db/models'); // Importing the Investment model
+const { investmentValidator } = require("./validators")
 
 const router = express.Router();
 
 // Add Investment
-router.post('/:username/investments', async (req, res) => {
+router.post(
+    '/:username/investments',
+    [
+        body('type').custom( investmentValidator ),
+        body('rateOfInterest').isFloat().withMessage('Invalid rate Rate of interest'),
+        body('baseValue').isDecimal().withMessage('Invalid base value'),
+    ],
+     async (req, res) => {
     const { username } = req.params;
-    const investmentData = req.body;
 
-    const investment = new Investment({ ...investmentData, username }); 
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { type, rateOfInterest, baseValue } = req.body;
+    
+    const transaction = await Transaction.create({
+        "description": "Initial Investment",
+        "amount": baseValue,
+    });
+
+    const investment = await Investment.create({
+        type,
+        rateOfInterest,
+        baseValue,
+        "currentValue": baseValue,
+        "transactions": [
+            transaction,
+        ]
+     }); 
+
     try {
-        await investment.save();
+        await User.updateOne({ username }, 
+            { $push: { investments: investment } }
+        );
         res.status(201).json({ message: 'Investment added successfully', investment });
     } catch (error) {
         res.status(500).json({ message: 'Error adding investment', error });

@@ -18,9 +18,5 @@ router.post('/', async (req, res) => {
       res.status(500).json({ message: 'Error logging in', error });
     }
   });
-  
-router.get('/', async (req, res) => {
-  res.json({"status": "success"});
-});
 
 module.exports = router; 
