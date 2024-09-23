@@ -54,7 +54,6 @@ router.get('/:username/investments', async (req, res) => {
     const { username } = req.params;
     let investments = await User.findOne({ username }, "investments").lean();
     investments = investments.investments;
-    console.log(investments)
 
     try {
         for (let inv of investments) {
@@ -73,13 +72,24 @@ router.get('/:username/investments', async (req, res) => {
 
 // Get Specific Investment
 router.get('/:username/investments/:investmentId', async (req, res) => {
-    const { investmentId } = req.params;
+    const { username, investmentId } = req.params;
+    const investmentUser = await User.findOne({ username }).where("investments.investmentId").equals(investmentId).lean();
 
     try {
-        const investment = await Investment.findOne({ investmentId });
-        if (!investment) {
+        if (!investmentUser) {
             return res.status(404).json({ message: 'Investment not found' });
         }
+    
+        let investment = investmentUser.investments.filter( value => parseInt(value.investmentId) === parseInt(investmentId))[0];
+        
+        delete investment._id;
+        delete investment.__v;
+    
+        for (let transaction of investment.transactions) {
+            delete transaction._id;
+            delete transaction.__v;
+        }
+        
         res.status(200).json(investment);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching investment', error });
@@ -89,7 +99,7 @@ router.get('/:username/investments/:investmentId', async (req, res) => {
 
 // Update Investment
 router.put('/:username/investments/:investmentId', async (req, res) => {
-    const { investmentId } = req.params;
+    const { username, investmentId } = req.params;
     const updatedData = req.body;
 
     try {
