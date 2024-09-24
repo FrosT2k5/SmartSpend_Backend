@@ -5,8 +5,9 @@ const { userAccountSchema, investmentSchema, expenseTrackerSchema, transactionSc
 // Load environment variables from .env file
 dotenv.config();
 
+const mongoURI = "mongodb://localhost:27017/finance"
 // Get MongoDB connection URI from environment variable
-const mongoURI = process.env.MONGO_URI;
+//const mongoURI = process.env.MONGO_URI;
 
 mongoose.connect(mongoURI)
     .then( () => console.log("connected to DB."))

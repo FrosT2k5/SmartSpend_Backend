@@ -8,3 +8,13 @@ const investmentValidator = async (value) => {
 } 
 
 module.exports = { investmentValidator }
+
+const EXPENSE_OPTIONS = ['Food', 'Transport', 'Utilities', 'Entertainment', 'Healthcare', 'Others'];
+
+const expenseValidator = async (value) => {
+    if (!EXPENSE_OPTIONS.includes(value)) {
+        throw new Error("Invalid Expense Category");
+    }
+};
+
+module.exports = { expenseValidator };

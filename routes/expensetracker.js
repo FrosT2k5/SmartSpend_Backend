@@ -1,149 +1,192 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const { ExpenseTracker, User } = require('../db/models');
+const { User, ExpenseTracker, Transaction } = require('../db/models'); // Importing the ExpenseTracker model
+//const { ExpenseTrackerValidator } = require("./validators");
 
 const router = express.Router();
 
-// Add Expense Tracker
+// Add Expense
 router.post(
     '/:username/expenses',
     [
         body('name').notEmpty().withMessage('Name is required'),
-        body('currentAmount').isDecimal().withMessage('Current amount must be a decimal'),
-        body('usedValue').isDecimal().withMessage('Used value must be a decimal').optional(),
-        body('expiryOrRenewal').isISO8601().withMessage('Expiry or renewal must be a valid date').optional(),
+        body('currentAmount').isNumeric().withMessage('Current amount must be a number'),
+        body('usedValue').isNumeric().withMessage('Used value must be a number'),
+        body('expiryOrRenewal').optional().isISO8601().withMessage('Invalid date format'),
         body('modeOfPayment').isIn(['Cash', 'Credit Card', 'Debit Card', 'Net Banking', 'UPI', 'Others'])
-            .withMessage('Mode of payment must be one of the predefined options').optional(),
+            .withMessage('Invalid mode of payment'),
     ],
     async (req, res) => {
         const { username } = req.params;
-        const errors = validationResult(req);
 
+        const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        // Check if user exists
-        const userExists = await User.findOne({ username });
-        if (!userExists) {
-            return res.status(404).json({ message: 'User not found' });
-        }
+        const { name, currentAmount, usedValue, expiryOrRenewal, modeOfPayment } = req.body;
 
-        const expenseData = req.body;
+        const transaction = await Transaction.create({
+            description: name,
+            amount: currentAmount, 
+            // Assuming you meant to use currentAmount here
+        });
 
-        // Create a new expense tracker
-        const expenseTracker = new ExpenseTracker({ ...expenseData, username });
+        const expense = await ExpenseTracker.create({
+            name,
+            currentAmount,
+            usedValue,
+            expiryOrRenewal,
+            modeOfPayment,
+            transactions: [transaction],
+        });
 
         try {
-            await expenseTracker.save(); // Save the new expense tracker record
-            
-            // Use spread operator to include all fields except username
-            const { username, ...responseData } = expenseTracker.toObject();
-
-            res.status(201).json({ 
-                message: 'Expense added successfully', 
-                expenseTracker: responseData // All fields except username
-            });
+            await User.updateOne(
+                { username: username },
+                { $push: { expenseTrackers: expense } }
+            );
+            res.status(201).json({ message: 'Expense added successfully', expense });
         } catch (error) {
-            console.error('Error adding expense:', error); // Log the error
             res.status(500).json({ message: 'Error adding expense', error });
         }
     }
 );
 
-
-
+// Get All Expenses for User
 router.get('/:username/expenses', async (req, res) => {
     const { username } = req.params;
 
     try {
-        // Check if user exists
-        const user = await User.findOne({ username }).lean();
-        if (!user) {
-            console.log('User not found:', username);
-            return res.status(404).json({ message: 'User not found' });
+        const user = await User.findOne({ username }, "expenseTrackers").lean();
+
+        if (!user || !user.expenseTrackers) {
+            return res.status(404).json({ message: 'User or expense trackers not found' });
         }
 
-        // Fetch expenses using user ID
-        const expenses = await ExpenseTracker.find({ userId: user._id }).lean();
-        console.log('Fetched expenses:', expenses);
+        let expenseTrackers = user.expenseTrackers;
 
-        if (!expenses || expenses.length === 0) {
-            console.log('No expenses found for user:', user._id);
-            return res.status(404).json({ message: 'No expenses found' });
+        // Clean up the data to remove unnecessary fields
+        for (let exp of expenseTrackers) {
+            delete exp._id;
+            delete exp.__v;
+
+            for (let transaction of exp.transactions) {
+                delete transaction._id;
+                delete transaction.__v;
+            }
         }
-
-        // Format the expenses for the response
-        const formattedExpenses = expenses.map(({ _id, __v, createdAt, updatedAt, ...rest }) => ({
-            _id,
-            createdAt,
-            updatedAt,
-            ...rest,
-        }));
-
-        res.status(200).json(formattedExpenses);
+        res.status(200).json(expenseTrackers);
     } catch (error) {
-        console.error('Error fetching expenses:', error);
-        res.status(500).json({ message: 'Error fetching expenses', error });
+        res.status(500).json({ message: 'Error fetching expense trackers', error });
     }
 });
 
-module.exports = router;
 
-
-// Get Specific Expense Tracker
-router.get('/:username/expenses/:expenseId', async (req, res) => {
-    const { username, expenseId } = req.params;
+// Get Specific Expense
+router.get('/:username/expenses/:indexcount', async (req, res) => {
+    const { username, indexcount } = req.params;
 
     try {
-        const expense = await ExpenseTracker.findOne({ _id: expenseId, username }).lean();
-        if (!expense) {
-            return res.status(404).json({ message: 'Expense not found' });
+        const user = await User.findOne({ username }, "expenseTrackers").lean();
+
+        if (!user || !user.expenseTrackers) {
+            return res.status(404).json({ message: 'User or expense trackers not found' });
         }
 
-        const { _id, __v, username, ...rest } = expense; // Omit _id, __v, and username
-        res.status(200).json(rest);
+        // Convert indexcount to a number
+        const index = parseInt(indexcount);
+        if (isNaN(index) || index < 0 || index >= user.expenseTrackers.length) {
+            return res.status(400).json({ message: 'Invalid index count' });
+        }
+
+        // Get the expense tracker by index
+        const expense = user.expenseTrackers[index];
+
+        // Clean up the expense data
+        delete expense._id;
+        delete expense.__v;
+
+        for (let transaction of expense.transactions) {
+            delete transaction._id;
+            delete transaction.__v;
+        }
+
+        res.status(200).json(expense);
     } catch (error) {
-        console.error('Error fetching expense:', error);
         res.status(500).json({ message: 'Error fetching expense', error });
     }
 });
 
-// Update Expense Tracker
-router.put('/:username/expenses/:expenseId', async (req, res) => {
-    const { username, expenseId } = req.params;
+
+
+
+// Update Expense
+
+
+router.put('/:username/expenses/:indexcount', async (req, res) => {
+    const { username, indexcount } = req.params;
     const updatedData = req.body;
 
     try {
-        const expense = await ExpenseTracker.findOneAndUpdate(
-            { _id: expenseId, username },
-            updatedData,
-            { new: true }
-        );
-        if (!expense) {
-            return res.status(404).json({ message: 'Expense tracker not found' });
+        const user = await User.findOne({ username }, "expenseTrackers").lean();
+
+        if (!user || !user.expenseTrackers) {
+            return res.status(404).json({ message: 'User or expense trackers not found' });
         }
-        res.status(200).json({ message: 'Expense updated successfully', expense });
+
+        // Convert indexcount to a number
+        const index = parseInt(indexcount);
+        if (isNaN(index) || index < 0 || index >= user.expenseTrackers.length) {
+            return res.status(400).json({ message: 'Invalid index count' });
+        }
+
+        // Update the expense tracker at the specified index
+        user.expenseTrackers[index] = { ...user.expenseTrackers[index], ...updatedData };
+
+        // Save the updated user document
+        await User.updateOne(
+            { username },
+            { expenseTrackers: user.expenseTrackers }
+        );
+
+        res.status(200).json({ message: 'Expense updated successfully', expense: user.expenseTrackers[index] });
     } catch (error) {
-        console.error('Error updating expense:', error);
         res.status(500).json({ message: 'Error updating expense', error });
     }
 });
-
-// Delete Expense Tracker
-router.delete('/:username/expenses/:expenseId', async (req, res) => {
-    const { username, expenseId } = req.params;
+// Delete Expense
+router.delete('/:username/expenses/:indexcount', async (req, res) => {
+    const { username, indexcount } = req.params;
 
     try {
-        const result = await ExpenseTracker.deleteOne({ _id: expenseId, username });
-        if (result.deletedCount === 0) {
-            return res.status(404).json({ message: 'Expense not found' });
+        // Find the user and their expense trackers
+        const user = await User.findOne({ username }, "expenseTrackers").lean();
+
+        if (!user || !user.expenseTrackers) {
+            return res.status(404).json({ message: 'User or expense trackers not found' });
         }
+
+        // Convert indexcount to a number
+        const index = parseInt(indexcount);
+        if (isNaN(index) || index < 0 || index >= user.expenseTrackers.length) {
+            return res.status(400).json({ message: 'Invalid index count' });
+        }
+
+        // Remove the expense tracker at the specified index
+        user.expenseTrackers.splice(index, 1);
+
+        // Save the updated user document
+        await User.updateOne(
+            { username },
+            { expenseTrackers: user.expenseTrackers }
+        );
+
         res.status(200).json({ message: 'Expense deleted successfully' });
     } catch (error) {
-        console.error('Error deleting expense:', error);
         res.status(500).json({ message: 'Error deleting expense', error });
     }
 });
+
 
 module.exports = router;
