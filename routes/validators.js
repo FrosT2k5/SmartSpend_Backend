@@ -17,4 +17,4 @@ const expenseValidator = async (value) => {
     }
 };
 
-module.exports = { expenseValidator };
+module.exports = { investmentValidator, expenseValidator };

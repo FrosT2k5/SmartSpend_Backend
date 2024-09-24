@@ -2,8 +2,12 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { User, Investment, Transaction } = require('../db/models'); // Importing the Investment model
 const { investmentValidator } = require("./validators")
+const { verifyToken, verifyLoggedInUser } = require('../middleware/auth');
 
 const router = express.Router();
+
+router.use(verifyToken);
+router.param('username', verifyLoggedInUser)
 
 // Add Investment
 router.post(
