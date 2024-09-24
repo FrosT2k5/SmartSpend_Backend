@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "swagger": "node ./swagger.js"
+    "swagger": "node ./swagger.js",
+    "nodemon": "node ./node_modules/nodemon/bin/nodemon.js ./index.js"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
@@ -20,6 +21,7 @@
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
+    "nodemon": "^3.1.7",
     "swagger-autogen": "^2.23.7"
   }
 }
