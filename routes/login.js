@@ -5,6 +5,7 @@ const { User } = require("../db/models");
 const { body, validationResult } = require('express-validator');
 
 const router = express.Router();
+const secretKey = process.env.JWT_SECRET;
 
 router.post('/',
   [
@@ -33,11 +34,24 @@ router.post('/',
           return res.status(401).json({ message: 'Invalid username or password' });
       }
 
+      const payload = { username: user.username };
       const token = jwt.sign(
-        { username: user.username },
-        process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRES_IN }
+        payload,
+        secretKey,
+        { expiresIn: '6h' }
       );
+      const refreshToken = jwt.sign(
+        payload,
+        secretKey,
+        { expiresIn: '7d' }
+      );
+
+      res.cookie('refreshToken', refreshToken, {
+        secure: true,
+        httpOnly: true,
+        sameSite: 'strict', 
+        maxAge: 7 * 24 * 60 * 60 * 1000, // Set the expiration time to 7 days
+      });
   
       res.status(200).json({ 
         message: 'Login successful', 
@@ -47,5 +61,28 @@ router.post('/',
       res.status(500).json({ message: 'Error logging in', "error": error.message });
     }
   });
+
+  router.post('/refreshToken', async (req, res) => {
+  // Refreshing JWT token using the refresh token
+  const cookie = req.cookies.refreshToken;
+
+  if (cookie) {
+    jwt.verify(cookie, secretKey, (err, decoded) => {
+      if (err) {
+        // Handle invalid or expired refresh token
+        res.status(401).json({ error: 'Invalid or expired refresh token' });
+      } else {
+        // Generate a new JWT token
+        const newJwtToken = jwt.sign({ username: decoded.username }, secretKey, { expiresIn: '6h' });
+
+        // Return the new JWT token to the client
+        res.json({ status: 'success', token: newJwtToken });
+      }
+    });
+  } else {
+    // No refresh token found, prompt user to log in
+    res.status(401).json({ error: 'Refresh token not found' });
+  }
+  })
 
 module.exports = router;

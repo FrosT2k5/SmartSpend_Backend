@@ -5,6 +5,8 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 
+const secretKey = process.env.JWT_SECRET;
+
 router.post('/',
   [
     body('name').notEmpty().withMessage('Invalid Name'),
@@ -50,11 +52,26 @@ router.post('/',
 
     await newUser.save();
 
+    const payload = { username: newUser.username };
+
     const token = jwt.sign(
-      { username: newUser.username },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
+      payload,
+      secretKey,
+      { expiresIn: '6h' }
     );
+
+    const refreshToken = jwt.sign(
+      payload,
+      secretKey,
+      { expiresIn: '7d' }
+    );
+
+    res.cookie('refreshToken', refreshToken, {
+      secure: true,
+      httpOnly: true,
+      sameSite: 'strict', 
+      maxAge: 7 * 24 * 60 * 60 * 1000, // Set the expiration time to 7 days
+    });
 
     res.status(201).json({ 
       message: 'User registered successfully',
