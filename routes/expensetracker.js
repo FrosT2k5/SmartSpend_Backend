@@ -2,10 +2,11 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { User, ExpenseTracker } = require('../db/models'); // Importing the ExpenseTracker model
 const { createNewTransaction } = require('../db/helpers');
-//const { ExpenseTrackerValidator } = require("./validators");
 
 const router = express.Router();
 
+router.use(verifyToken);
+router.param('username', verifyLoggedInUser)
 // Add Expense
 router.post(
     '/:username/expenses',
@@ -13,6 +14,7 @@ router.post(
         body('name').notEmpty().withMessage('Name is required'),
         body('currentAmount').isDecimal().withMessage('Current amount must be a number'),
         body('usedValue').isDecimal().withMessage('Used value must be a number'),
+
         body('expiryOrRenewal').optional().isISO8601().withMessage('Invalid date format'),
         body('modeOfPayment').isIn(['Cash', 'Credit Card', 'Debit Card', 'Net Banking', 'UPI', 'Others'])
             .withMessage('Invalid mode of payment'),
