@@ -1,15 +1,18 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { User, ExpenseTracker, Transaction } = require('../db/models'); // Importing the ExpenseTracker model
-//const { ExpenseTrackerValidator } = require("./validators");
+const { verifyToken, verifyLoggedInUser } = require('../middleware/auth');
+const { expenseValidator } = require("./validators")
 
 const router = express.Router();
 
+router.use(verifyToken);
+router.param('username', verifyLoggedInUser)
 // Add Expense
 router.post(
     '/:username/expenses',
     [
-        body('name').notEmpty().withMessage('Name is required'),
+        body('name').notEmpty().withMessage('Name is required').custom(expenseValidator),
         body('currentAmount').isNumeric().withMessage('Current amount must be a number'),
         body('usedValue').isNumeric().withMessage('Used value must be a number'),
         body('expiryOrRenewal').optional().isISO8601().withMessage('Invalid date format'),
@@ -28,8 +31,7 @@ router.post(
 
         const transaction = await Transaction.create({
             description: name,
-            amount: currentAmount, 
-            // Assuming you meant to use currentAmount here
+            amount: currentAmount,
         });
 
         const expense = await ExpenseTracker.create({
