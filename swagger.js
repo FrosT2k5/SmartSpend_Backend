@@ -5,7 +5,23 @@ const doc = {
     title: 'Personal Finance Manager API',
     description: 'API Docs'
   },
-  host: 'localhost:3000'
+  components: {
+    securitySchemes:{
+        bearerAuth: {
+            type: 'http',
+            scheme: 'bearer'
+        }
+    }
+  },
+  securityDefinitions: {
+    apiKeyAuth: {
+      type: 'apiKey',
+      in: 'header',
+      name: 'Authorization', // name of the header, query parameter or cookie
+      description: 'Enter your bearer token in the format: Bearer **&lt;token>**'
+    }
+  },
+  host: 'localhost:3000',
 };
 
 const outputFile = './swagger-output.json';

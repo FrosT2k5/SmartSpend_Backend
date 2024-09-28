@@ -21,6 +21,10 @@ router.post(
             .withMessage('Invalid mode of payment').custom(modeOfPaymentValidator),
     ],
     async (req, res) => {
+        /* #swagger.security = [{
+            "bearerAuth": [],
+            "apiKeyAuth": []
+            }] */
         const { username } = req.params;
 
         const errors = validationResult(req);
@@ -56,6 +60,10 @@ router.post(
 
 // Get All Expenses for User
 router.get('/:username/expenses', async (req, res) => {
+    /* #swagger.security = [{
+        "bearerAuth": [],
+        "apiKeyAuth": []
+        }] */
     const { username } = req.params;
 
     try {
@@ -86,6 +94,10 @@ router.get('/:username/expenses', async (req, res) => {
 
 // Get Specific Expense
 router.get('/:username/expenses/:indexcount', async (req, res) => {
+    /* #swagger.security = [{
+        "bearerAuth": [],
+        "apiKeyAuth": []
+        }] */
     const { username, indexcount } = req.params;
 
     try {
@@ -124,6 +136,10 @@ router.get('/:username/expenses/:indexcount', async (req, res) => {
 
 // Update Expense
 router.put('/:username/expenses/:indexcount', async (req, res) => {
+    /* #swagger.security = [{
+        "bearerAuth": [],
+        "apiKeyAuth": []
+        }] */
     const { username, indexcount } = req.params;
     const updatedData = req.body;
 
@@ -159,6 +175,10 @@ router.put('/:username/expenses/:indexcount', async (req, res) => {
 });
 // Delete Expense
 router.delete('/:username/expenses/:indexcount', async (req, res) => {
+    /* #swagger.security = [{
+        "bearerAuth": [],
+        "apiKeyAuth": []
+        }] */
     const { username, indexcount } = req.params;
 
     try {
