@@ -1,6 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const { User, Investment, Transaction } = require('../db/models'); // Importing the Investment model
+const { User, Investment } = require('../db/models'); // Importing the Investment model
+const { createNewTransaction } = require("../db/helpers");
 const { investmentValidator } = require("./validators")
 const { verifyToken, verifyLoggedInUser } = require('../middleware/auth');
 
@@ -27,10 +28,7 @@ router.post(
 
     const { type, rateOfInterest, baseValue } = req.body;
     
-    const transaction = await Transaction.create({
-        "description": "Initial Investment",
-        "amount": baseValue,
-    });
+    const transaction = createNewTransaction("Initial Investment", baseValue);
 
     const investment = await Investment.create({
         type,
@@ -38,13 +36,13 @@ router.post(
         baseValue,
         "currentValue": baseValue,
         "transactions": [
-            transaction,
+            await transaction,
         ]
      }); 
 
     try {
         await User.updateOne( {username: username}, 
-            { $push: { investments: investment } }
+            { $push: { investments: investment._id } }
         );
         res.status(201).json({ message: 'Investment added successfully', investment });
     } catch (error) {
@@ -56,29 +54,37 @@ router.post(
 // Get All Investments for User
 router.get('/:username/investments', async (req, res) => {
     const { username } = req.params;
-    let investments = await User.findOne({ username }, "investments").lean();
-    investments = investments.investments;
+    
+    let currentUser = await User.findOne({ username }, "investments").populate({
+        path: "investments",
+        select: '-_id -__v',
+    });
+    investments = currentUser.investments;
 
     try {
         for (let inv of investments) {
-            delete inv._id;
-            delete inv.__v;
-            for (let transaction of inv.transactions) {
-                delete transaction._id;
-                delete transaction.__v;
-            }
+            await inv.populate({
+                path: "transactions",
+                select: '-_id -__v',
+            });
         }
         res.status(200).json(investments);
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching investments', error });
+        res.status(500).json({ message: 'Error fetching investments', error: error.message });
     }
 });
 
 // Get Specific Investment
 router.get('/:username/investments/:investmentId', async (req, res) => {
     const { username, investmentId } = req.params;
-    const investmentUser = await User.findOne({ username }).where("investments.investmentId").equals(investmentId).lean();
 
+    const investmentUser = await User.findOne({ username })
+                                    .populate({
+                                        path: "investments",
+                                        match: { investmentId: {$eq: investmentId } },
+                                        select: '-_id -__v',
+                                    })
+    
     try {
         if (!investmentUser) {
             return res.status(404).json({ message: 'Investment not found' });
@@ -86,40 +92,52 @@ router.get('/:username/investments/:investmentId', async (req, res) => {
     
         let investment = investmentUser.investments.filter( value => parseInt(value.investmentId) === parseInt(investmentId))[0];
         
-        delete investment._id;
-        delete investment.__v;
-    
-        for (let transaction of investment.transactions) {
-            delete transaction._id;
-            delete transaction.__v;
-        }
-        
+        await investment.populate("transactions");
         res.status(200).json(investment);
+
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching investment', error });
+        res.status(500).json({ message: 'Error fetching investment', error: error.message });
     }
 });
 
 
 // Update Investment
-router.put('/:username/investments/:investmentId', async (req, res) => {
-    const { username, investmentId } = req.params;
-    const updatedData = req.body;
+router.put(
+    '/:username/investments/:investmentId', 
+    [
+        body('transactionAmount').notEmpty().isDecimal().withMessage('Invalid transaction value'),
+        body('description').notEmpty().isString().withMessage('Invalid transaction value'),
+    ],
+    async (req, res) => {
 
-    try {
-        const investment = await Investment.findOneAndUpdate(
-            { investmentId },
-            updatedData,
-            { new: true }
-        );
-        if (!investment) {
-            return res.status(404).json({ message: 'Investment not found' });
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
         }
-        res.status(200).json({ message: 'Investment updated successfully', investment });
-    } catch (error) {
-        res.status(500).json({ message: 'Error updating investment', error });
+
+        const { investmentId } = req.params;
+        const { transactionAmount, description } = req.body;
+        let investment = await Investment.findOne({investmentId: investmentId});
+
+        const newTransaction = createNewTransaction(description, transactionAmount);
+
+
+        try {
+            if (!investment) {
+                return res.status(404).json({ message: 'Investment not found' });
+            }
+
+            investment.currentValue += transactionAmount;
+            investment.transactions.push(await newTransaction);
+            investment.populate("transactions")
+            await investment.save();
+            
+            res.status(200).json({ message: 'Investment updated successfully' });
+        } catch (error) {
+            res.status(500).json({ message: 'Error updating investment', error });
+        }
     }
-});
+);
 
 
 // Delete Investment
