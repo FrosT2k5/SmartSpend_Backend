@@ -17,6 +17,10 @@ router.post(
         body('amount').isNumeric().withMessage('Amount must be a number'),
     ],
     async (req, res) => {
+        /* #swagger.security = [{
+            "bearerAuth": [],
+            "apiKeyAuth": []
+            }] */
         const { username } = req.params;
 
         const errors = validationResult(req);
@@ -51,6 +55,10 @@ router.post(
 
 // Get All Transactions for User
 router.get('/:username/transactions', async (req, res) => {
+    /* #swagger.security = [{
+        "bearerAuth": [],
+        "apiKeyAuth": []
+        }] */
     const { username } = req.params;
 
     try {
@@ -73,6 +81,10 @@ router.get('/:username/transactions', async (req, res) => {
 
 // Get Specific Transaction
 router.get('/:username/transactions/:indexcount', async (req, res) => {
+    /* #swagger.security = [{
+        "bearerAuth": [],
+        "apiKeyAuth": []
+        }] */
     const { username, indexcount } = req.params;
 
     try {
@@ -105,6 +117,10 @@ router.get('/:username/transactions/:indexcount', async (req, res) => {
 
 // Delete Transaction
 router.delete('/:username/transactions/:indexcount', async (req, res) => {
+    /* #swagger.security = [{
+        "bearerAuth": [],
+        "apiKeyAuth": []
+        }] */
     const { username, indexcount } = req.params;
 
     try {

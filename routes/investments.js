@@ -18,7 +18,13 @@ router.post(
         body('rateOfInterest').isFloat().withMessage('Invalid rate Rate of interest'),
         body('baseValue').isDecimal().withMessage('Invalid base value'),
     ],
-     async (req, res) => {
+    async (req, res) => {
+
+    /* #swagger.security = [{
+        "bearerAuth": [],
+        "apiKeyAuth": []
+        }] */
+
     const { username } = req.params;
 
     const errors = validationResult(req);
@@ -53,6 +59,11 @@ router.post(
 
 // Get All Investments for User
 router.get('/:username/investments', async (req, res) => {
+    /* #swagger.security = [{
+        "bearerAuth": [],
+        "apiKeyAuth": []
+        }] */
+
     const { username } = req.params;
     
     let currentUser = await User.findOne({ username }, "investments").populate({
@@ -76,6 +87,10 @@ router.get('/:username/investments', async (req, res) => {
 
 // Get Specific Investment
 router.get('/:username/investments/:investmentId', async (req, res) => {
+        /* #swagger.security = [{
+            "bearerAuth": [],
+            "apiKeyAuth": []
+            }] */
     const { username, investmentId } = req.params;
 
     const investmentUser = await User.findOne({ username })
@@ -110,6 +125,10 @@ router.put(
     ],
     async (req, res) => {
 
+        /* #swagger.security = [{
+            "bearerAuth": [],
+            "apiKeyAuth": []
+            }] */
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
@@ -142,6 +161,11 @@ router.put(
 
 // Delete Investment
 router.delete('/:username/investments/:investmentId', async (req, res) => {
+
+    /* #swagger.security = [{
+        "bearerAuth": [],
+        "apiKeyAuth": []
+        }] */
     const { investmentId } = req.params;
 
     try {
