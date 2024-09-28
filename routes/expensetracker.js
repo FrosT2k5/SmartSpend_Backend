@@ -18,7 +18,7 @@ router.post(
         body('usedValue').isDecimal().withMessage('Used value must be a number'),
         body('expiryOrRenewal').optional().isISO8601().withMessage('Invalid date format'),
         body('modeOfPayment').isIn(['Cash', 'Credit Card', 'Debit Card', 'Net Banking', 'UPI', 'Others'])
-            .withMessage('Invalid mode of payment').cusSairajtom(modeSairajOfPaymentValidator),
+            .withMessage('Invalid mode of payment').custom(modeOfPaymentValidator),
     ],
     async (req, res) => {
         const { username } = req.params;
