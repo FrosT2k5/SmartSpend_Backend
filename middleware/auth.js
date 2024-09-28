@@ -15,7 +15,6 @@ const verifyToken = (req, res, next) => {
         }
 
         req.decryptedUsername = decoded.username;
-        console.log(decoded.username)
         next();
     });
 };

@@ -1,6 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const { User, ExpenseTracker, Transaction } = require('../db/models'); // Importing the ExpenseTracker model
+const { User, ExpenseTracker } = require('../db/models'); // Importing the ExpenseTracker model
+const { createNewTransaction } = require('../db/helpers');
 //const { ExpenseTrackerValidator } = require("./validators");
 
 const router = express.Router();
@@ -10,8 +11,8 @@ router.post(
     '/:username/expenses',
     [
         body('name').notEmpty().withMessage('Name is required'),
-        body('currentAmount').isNumeric().withMessage('Current amount must be a number'),
-        body('usedValue').isNumeric().withMessage('Used value must be a number'),
+        body('currentAmount').isDecimal().withMessage('Current amount must be a number'),
+        body('usedValue').isDecimal().withMessage('Used value must be a number'),
         body('expiryOrRenewal').optional().isISO8601().withMessage('Invalid date format'),
         body('modeOfPayment').isIn(['Cash', 'Credit Card', 'Debit Card', 'Net Banking', 'UPI', 'Others'])
             .withMessage('Invalid mode of payment'),
@@ -26,11 +27,7 @@ router.post(
 
         const { name, currentAmount, usedValue, expiryOrRenewal, modeOfPayment } = req.body;
 
-        const transaction = await Transaction.create({
-            description: name,
-            amount: currentAmount, 
-            // Assuming you meant to use currentAmount here
-        });
+        const transaction = await createNewTransaction("Initial Transaction", currentAmount);
 
         const expense = await ExpenseTracker.create({
             name,
@@ -44,11 +41,11 @@ router.post(
         try {
             await User.updateOne(
                 { username: username },
-                { $push: { expenseTrackers: expense } }
+                { $push: { expenseTrackers: expense._id } }
             );
             res.status(201).json({ message: 'Expense added successfully', expense });
         } catch (error) {
-            res.status(500).json({ message: 'Error adding expense', error });
+            res.status(500).json({ message: 'Error adding expense', "error": error.message });
         }
     }
 );
@@ -58,7 +55,10 @@ router.get('/:username/expenses', async (req, res) => {
     const { username } = req.params;
 
     try {
-        const user = await User.findOne({ username }, "expenseTrackers").lean();
+        let user = await User.findOne({ username }, "expenseTrackers").populate({
+            path: "expenseTrackers",
+            select: '-_id -__v',
+        });
 
         if (!user || !user.expenseTrackers) {
             return res.status(404).json({ message: 'User or expense trackers not found' });
@@ -68,13 +68,10 @@ router.get('/:username/expenses', async (req, res) => {
 
         // Clean up the data to remove unnecessary fields
         for (let exp of expenseTrackers) {
-            delete exp._id;
-            delete exp.__v;
-
-            for (let transaction of exp.transactions) {
-                delete transaction._id;
-                delete transaction.__v;
-            }
+            exp.populate({
+                "path": "transactions", 
+                "select": "-_id -__v"
+            });
         }
         res.status(200).json(expenseTrackers);
     } catch (error) {
@@ -88,29 +85,29 @@ router.get('/:username/expenses/:indexcount', async (req, res) => {
     const { username, indexcount } = req.params;
 
     try {
-        const user = await User.findOne({ username }, "expenseTrackers").lean();
+        let user = await User.findOne({ "username": username }, "expenseTrackers").populate({
+            path: "expenseTrackers",
+            select: '-_id -__v',
+        });
 
+        console.log(user);
         if (!user || !user.expenseTrackers) {
             return res.status(404).json({ message: 'User or expense trackers not found' });
         }
 
         // Convert indexcount to a number
         const index = parseInt(indexcount);
-        if (isNaN(index) || index < 0 || index >= user.expenseTrackers.length) {
+
+        // Get the expense tracker by index
+        const expense = user.expenseTrackers[index-1];
+        if (isNaN(index) || index < 1 || index >= user.expenseTrackers.length+1) {
             return res.status(400).json({ message: 'Invalid index count' });
         }
 
-        // Get the expense tracker by index
-        const expense = user.expenseTrackers[index];
-
-        // Clean up the expense data
-        delete expense._id;
-        delete expense.__v;
-
-        for (let transaction of expense.transactions) {
-            delete transaction._id;
-            delete transaction.__v;
-        }
+        expense.populate({
+                "path": "transactions", 
+                "select": "-_id -__v"
+        })
 
         res.status(200).json(expense);
     } catch (error) {
@@ -122,14 +119,15 @@ router.get('/:username/expenses/:indexcount', async (req, res) => {
 
 
 // Update Expense
-
-
 router.put('/:username/expenses/:indexcount', async (req, res) => {
     const { username, indexcount } = req.params;
     const updatedData = req.body;
 
     try {
-        const user = await User.findOne({ username }, "expenseTrackers").lean();
+        let user = await User.findOne({ "username": username }, "expenseTrackers").populate({
+            path: "expenseTrackers",
+            select: '-_id -__v',
+        });
 
         if (!user || !user.expenseTrackers) {
             return res.status(404).json({ message: 'User or expense trackers not found' });
@@ -137,12 +135,12 @@ router.put('/:username/expenses/:indexcount', async (req, res) => {
 
         // Convert indexcount to a number
         const index = parseInt(indexcount);
-        if (isNaN(index) || index < 0 || index >= user.expenseTrackers.length) {
+        if (isNaN(index) || index < 1 || index >= user.expenseTrackers.length+1) {
             return res.status(400).json({ message: 'Invalid index count' });
         }
 
         // Update the expense tracker at the specified index
-        user.expenseTrackers[index] = { ...user.expenseTrackers[index], ...updatedData };
+        user.expenseTrackers[index+1] = { ...user.expenseTrackers[index], ...updatedData };
 
         // Save the updated user document
         await User.updateOne(
