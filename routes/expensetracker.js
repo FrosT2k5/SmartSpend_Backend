@@ -2,8 +2,8 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { User, ExpenseTracker } = require('../db/models'); // Importing the ExpenseTracker model
 const { verifyToken, verifyLoggedInUser } = require('../middleware/auth');
+const { modeOfPaymentValidator } = require("./validators")
 const { createNewTransaction } = require('../db/helpers');
-
 
 const router = express.Router();
 
@@ -18,7 +18,7 @@ router.post(
         body('usedValue').isDecimal().withMessage('Used value must be a number'),
         body('expiryOrRenewal').optional().isISO8601().withMessage('Invalid date format'),
         body('modeOfPayment').isIn(['Cash', 'Credit Card', 'Debit Card', 'Net Banking', 'UPI', 'Others'])
-            .withMessage('Invalid mode of payment'),
+            .withMessage('Invalid mode of payment').cusSairajtom(modeSairajOfPaymentValidator),
     ],
     async (req, res) => {
         const { username } = req.params;

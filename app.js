@@ -11,6 +11,7 @@ var loginRouter = require('./routes/login');
 var registerRouter = require('./routes/register');
 var investmentRouter = require('./routes/investments');
 var expenseTrackerRouter = require('./routes/expensetracker');
+var transactionRouter = require('./routes/transactions')
 
 var app = express();
 const swaggerDocument = require('./swagger-output.json');
@@ -31,6 +32,7 @@ app.use('/api/login', loginRouter);
 app.use('/api/register', registerRouter);
 app.use('/api', investmentRouter);
 app.use('/api', expenseTrackerRouter);
+app.use('/api', transactionRouter)
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
