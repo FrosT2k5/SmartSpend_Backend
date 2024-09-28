@@ -7,14 +7,12 @@ const investmentValidator = async (value) => {
     }
 } 
 
-module.exports = { investmentValidator }
+const PAYMENT_OPTIONS = ['Cash', 'Credit Card', 'Debit Card', 'Net Banking', 'UPI', 'Others'];
 
-const EXPENSE_OPTIONS = ['Food', 'Transport', 'Utilities', 'Entertainment', 'Healthcare', 'Others'];
-
-const expenseValidator = async (value) => {
-    if (!EXPENSE_OPTIONS.includes(value)) {
-        throw new Error("Invalid Expense Category");
+const modeOfPaymentValidator = async (value) => {
+    if(!PAYMENT_OPTIONS.includes(value)) {
+        throw new Error("Invalid Payment Method");
     }
 };
 
-module.exports = { investmentValidator, expenseValidator };
+module.exports = { investmentValidator, modeOfPaymentValidator };

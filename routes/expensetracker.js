@@ -2,7 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { User, ExpenseTracker, Transaction } = require('../db/models'); // Importing the ExpenseTracker model
 const { verifyToken, verifyLoggedInUser } = require('../middleware/auth');
-const { expenseValidator } = require("./validators")
+const { modeOfPaymentValidator } = require("./validators")
 
 const router = express.Router();
 
@@ -12,12 +12,12 @@ router.param('username', verifyLoggedInUser)
 router.post(
     '/:username/expenses',
     [
-        body('name').notEmpty().withMessage('Name is required').custom(expenseValidator),
+        body('name').notEmpty().withMessage('Name is required'),
         body('currentAmount').isNumeric().withMessage('Current amount must be a number'),
         body('usedValue').isNumeric().withMessage('Used value must be a number'),
         body('expiryOrRenewal').optional().isISO8601().withMessage('Invalid date format'),
         body('modeOfPayment').isIn(['Cash', 'Credit Card', 'Debit Card', 'Net Banking', 'UPI', 'Others'])
-            .withMessage('Invalid mode of payment'),
+            .withMessage('Invalid mode of payment').custom(modeOfPaymentValidator),
     ],
     async (req, res) => {
         const { username } = req.params;
