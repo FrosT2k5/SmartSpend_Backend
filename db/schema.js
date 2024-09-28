@@ -39,7 +39,10 @@ const expenseTrackerSchema = new mongoose.Schema({
         type: Date,
         required: false,
     },
-    transactions: [transactionSchema],
+    transactions: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Transaction',
+    }],
     modeOfPayment: {
         type: String,
         enum: ['Cash', 'Credit Card', 'Debit Card', 'Net Banking', 'UPI', 'Others'],
@@ -72,11 +75,13 @@ const investmentSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
-    transactions: [transactionSchema],
+    transactions: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Transaction',
+    }],
 }, { timestamps: true });
 
 investmentSchema.plugin(AutoIncrement, { inc_field: 'investmentId' });
-
 
 // Create a schema for user account
 const userAccountSchema = new mongoose.Schema({
@@ -107,7 +112,10 @@ const userAccountSchema = new mongoose.Schema({
             type: String,
         },
     }],
-    transactions: [transactionSchema],
+    transactions: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Transaction',
+    }],
     currentBalance: {
         type: Number,
         required: true,
@@ -118,8 +126,14 @@ const userAccountSchema = new mongoose.Schema({
         required: true,
         default: 0,
     },
-    expenseTrackers: [expenseTrackerSchema],
-    investments: [investmentSchema],
+    expenseTrackers: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "ExpenseTracker",
+    }],
+    investments: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Investment",
+        }],
 }, { timestamps: true });
 
 
