@@ -22,7 +22,6 @@ router.post(
 
     /* #swagger.security = [{
         "bearerAuth": [],
-        "apiKeyAuth": []
         }] */
 
     const { username } = req.params;
@@ -61,7 +60,6 @@ router.post(
 router.get('/:username/investments', async (req, res) => {
     /* #swagger.security = [{
         "bearerAuth": [],
-        "apiKeyAuth": []
         }] */
 
     const { username } = req.params;
@@ -89,7 +87,6 @@ router.get('/:username/investments', async (req, res) => {
 router.get('/:username/investments/:investmentId', async (req, res) => {
         /* #swagger.security = [{
             "bearerAuth": [],
-            "apiKeyAuth": []
             }] */
     const { username, investmentId } = req.params;
 
@@ -127,7 +124,6 @@ router.put(
 
         /* #swagger.security = [{
             "bearerAuth": [],
-            "apiKeyAuth": []
             }] */
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -164,7 +160,6 @@ router.delete('/:username/investments/:investmentId', async (req, res) => {
 
     /* #swagger.security = [{
         "bearerAuth": [],
-        "apiKeyAuth": []
         }] */
     const { investmentId } = req.params;
 

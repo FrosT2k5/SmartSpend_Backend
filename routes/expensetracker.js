@@ -23,7 +23,6 @@ router.post(
     async (req, res) => {
         /* #swagger.security = [{
             "bearerAuth": [],
-            "apiKeyAuth": []
             }] */
         const { username } = req.params;
 
@@ -62,7 +61,6 @@ router.post(
 router.get('/:username/expenses', async (req, res) => {
     /* #swagger.security = [{
         "bearerAuth": [],
-        "apiKeyAuth": []
         }] */
     const { username } = req.params;
 
@@ -96,7 +94,6 @@ router.get('/:username/expenses', async (req, res) => {
 router.get('/:username/expenses/:indexcount', async (req, res) => {
     /* #swagger.security = [{
         "bearerAuth": [],
-        "apiKeyAuth": []
         }] */
     const { username, indexcount } = req.params;
 
@@ -138,7 +135,6 @@ router.get('/:username/expenses/:indexcount', async (req, res) => {
 router.put('/:username/expenses/:indexcount', async (req, res) => {
     /* #swagger.security = [{
         "bearerAuth": [],
-        "apiKeyAuth": []
         }] */
     const { username, indexcount } = req.params;
     const updatedData = req.body;
@@ -177,7 +173,6 @@ router.put('/:username/expenses/:indexcount', async (req, res) => {
 router.delete('/:username/expenses/:indexcount', async (req, res) => {
     /* #swagger.security = [{
         "bearerAuth": [],
-        "apiKeyAuth": []
         }] */
     const { username, indexcount } = req.params;
 

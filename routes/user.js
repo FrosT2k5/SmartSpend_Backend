@@ -7,6 +7,9 @@ const router = express.Router();
 router.use(verifyToken);
 
 router.get('/', async function(req, res) {
+    /* #swagger.security = [{
+        "bearerAuth": [],
+        }] */
   const user = await User.findOne(
     {username: req.decryptedUsername},
     'username name email monthlyIncome currentBalance'
@@ -16,6 +19,9 @@ router.get('/', async function(req, res) {
 });
 
 router.put('/', async function(req, res) {
+    /* #swagger.security = [{
+        "bearerAuth": [],
+        }] */
   let user = await User.findOne(
     {username: req.decryptedUsername},
   );
