@@ -19,7 +19,6 @@ router.post(
     async (req, res) => {
         /* #swagger.security = [{
             "bearerAuth": [],
-            "apiKeyAuth": []
             }] */
         const { username } = req.params;
 
@@ -57,7 +56,6 @@ router.post(
 router.get('/:username/transactions', async (req, res) => {
     /* #swagger.security = [{
         "bearerAuth": [],
-        "apiKeyAuth": []
         }] */
     const { username } = req.params;
 
@@ -83,7 +81,6 @@ router.get('/:username/transactions', async (req, res) => {
 router.get('/:username/transactions/:indexcount', async (req, res) => {
     /* #swagger.security = [{
         "bearerAuth": [],
-        "apiKeyAuth": []
         }] */
     const { username, indexcount } = req.params;
 
@@ -119,7 +116,6 @@ router.get('/:username/transactions/:indexcount', async (req, res) => {
 router.delete('/:username/transactions/:indexcount', async (req, res) => {
     /* #swagger.security = [{
         "bearerAuth": [],
-        "apiKeyAuth": []
         }] */
     const { username, indexcount } = req.params;
 

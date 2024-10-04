@@ -45,7 +45,7 @@ router.post('/',
         password: hashedPassword,
         currentBalance: 0,
         rateOfInterest: 0,
-        monthlyIncome: [],
+        monthlyIncome: 0,
         transactions: [],
         expenseTrackers: []
       });

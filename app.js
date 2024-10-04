@@ -6,7 +6,7 @@ var logger = require('morgan');
 const swaggerUi = require('swagger-ui-express');
 
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+var userRouter = require('./routes/user');
 var loginRouter = require('./routes/login');
 var registerRouter = require('./routes/register');
 var investmentRouter = require('./routes/investments');
@@ -28,7 +28,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-app.use('/api/users', usersRouter);
+app.use('/api/user', userRouter);
 app.use('/api/login', loginRouter);
 app.use('/api/register', registerRouter);
 app.use('/api', investmentRouter);

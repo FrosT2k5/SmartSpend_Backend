@@ -103,15 +103,10 @@ const userAccountSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    monthlyIncome: [{
-        amount: {
-            type: Number,
-            required: true,
-        },
-        source: {
-            type: String,
-        },
-    }],
+    monthlyIncome: {
+        type: Number,
+        default: 1000
+    },
     transactions: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Transaction',

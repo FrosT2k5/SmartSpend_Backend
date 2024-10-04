@@ -1,23 +1,15 @@
 {
-  "swagger": "2.0",
+  "openapi": "3.0.0",
   "info": {
     "title": "Personal Finance Manager API",
     "description": "API Docs",
     "version": "1.0.0"
   },
-  "host": "localhost:3000",
-  "basePath": "/",
-  "schemes": [
-    "http"
-  ],
-  "securityDefinitions": {
-    "apiKeyAuth": {
-      "type": "apiKey",
-      "in": "header",
-      "name": "Authorization",
-      "description": "Enter your bearer token in the format: Bearer **&lt;token>**"
+  "servers": [
+    {
+      "url": "http://localhost:3000/"
     }
-  },
+  ],
   "paths": {
     "/": {
       "get": {
@@ -29,12 +21,80 @@
         }
       }
     },
-    "/api/users/": {
+    "/api/user/": {
       "get": {
         "description": "",
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "example": "any"
+                  },
+                  "email": {
+                    "example": "any"
+                  },
+                  "password": {
+                    "example": "any"
+                  },
+                  "monthlyIncome": {
+                    "example": "any"
+                  },
+                  "currentBalance": {
+                    "example": "any"
+                  },
+                  "rateOfInterest": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -42,23 +102,6 @@
     "/api/login/": {
       "post": {
         "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "username": {
-                  "example": "any"
-                },
-                "password": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -71,6 +114,23 @@
           },
           "500": {
             "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "example": "any"
+                  },
+                  "password": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -91,29 +151,6 @@
     "/api/register/": {
       "post": {
         "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "example": "any"
-                },
-                "username": {
-                  "example": "any"
-                },
-                "email": {
-                  "example": "any"
-                },
-                "password": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
         "responses": {
           "201": {
             "description": "Created"
@@ -123,6 +160,29 @@
           },
           "500": {
             "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "example": "any"
+                  },
+                  "username": {
+                    "example": "any"
+                  },
+                  "email": {
+                    "example": "any"
+                  },
+                  "password": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -135,24 +195,8 @@
             "name": "username",
             "in": "path",
             "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
             "schema": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "example": "any"
-                },
-                "rateOfInterest": {
-                  "example": "any"
-                },
-                "baseValue": {
-                  "example": "any"
-                }
-              }
+              "type": "string"
             }
           }
         ],
@@ -175,10 +219,29 @@
         },
         "security": [
           {
-            "bearerAuth": [],
-            "apiKeyAuth": []
+            "bearerAuth": []
           }
-        ]
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "example": "any"
+                  },
+                  "rateOfInterest": {
+                    "example": "any"
+                  },
+                  "baseValue": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
       },
       "get": {
         "description": "",
@@ -187,7 +250,9 @@
             "name": "username",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -206,8 +271,7 @@
         },
         "security": [
           {
-            "bearerAuth": [],
-            "apiKeyAuth": []
+            "bearerAuth": []
           }
         ]
       }
@@ -220,13 +284,17 @@
             "name": "username",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "investmentId",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -248,8 +316,7 @@
         },
         "security": [
           {
-            "bearerAuth": [],
-            "apiKeyAuth": []
+            "bearerAuth": []
           }
         ]
       },
@@ -260,27 +327,16 @@
             "name": "username",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "investmentId",
             "in": "path",
             "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
             "schema": {
-              "type": "object",
-              "properties": {
-                "transactionAmount": {
-                  "example": "any"
-                },
-                "description": {
-                  "example": "any"
-                }
-              }
+              "type": "string"
             }
           }
         ],
@@ -306,10 +362,26 @@
         },
         "security": [
           {
-            "bearerAuth": [],
-            "apiKeyAuth": []
+            "bearerAuth": []
           }
-        ]
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "transactionAmount": {
+                    "example": "any"
+                  },
+                  "description": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
       },
       "delete": {
         "description": "",
@@ -318,13 +390,17 @@
             "name": "username",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "investmentId",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -346,8 +422,7 @@
         },
         "security": [
           {
-            "bearerAuth": [],
-            "apiKeyAuth": []
+            "bearerAuth": []
           }
         ]
       }
@@ -360,30 +435,8 @@
             "name": "username",
             "in": "path",
             "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
             "schema": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "example": "any"
-                },
-                "currentAmount": {
-                  "example": "any"
-                },
-                "usedValue": {
-                  "example": "any"
-                },
-                "expiryOrRenewal": {
-                  "example": "any"
-                },
-                "modeOfPayment": {
-                  "example": "any"
-                }
-              }
+              "type": "string"
             }
           }
         ],
@@ -406,10 +459,35 @@
         },
         "security": [
           {
-            "bearerAuth": [],
-            "apiKeyAuth": []
+            "bearerAuth": []
           }
-        ]
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "example": "any"
+                  },
+                  "currentAmount": {
+                    "example": "any"
+                  },
+                  "usedValue": {
+                    "example": "any"
+                  },
+                  "expiryOrRenewal": {
+                    "example": "any"
+                  },
+                  "modeOfPayment": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
       },
       "get": {
         "description": "",
@@ -418,7 +496,9 @@
             "name": "username",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -440,8 +520,7 @@
         },
         "security": [
           {
-            "bearerAuth": [],
-            "apiKeyAuth": []
+            "bearerAuth": []
           }
         ]
       }
@@ -454,13 +533,17 @@
             "name": "username",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "indexcount",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -485,8 +568,7 @@
         },
         "security": [
           {
-            "bearerAuth": [],
-            "apiKeyAuth": []
+            "bearerAuth": []
           }
         ]
       },
@@ -497,13 +579,17 @@
             "name": "username",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "indexcount",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -528,8 +614,7 @@
         },
         "security": [
           {
-            "bearerAuth": [],
-            "apiKeyAuth": []
+            "bearerAuth": []
           }
         ]
       },
@@ -540,13 +625,17 @@
             "name": "username",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "indexcount",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -571,8 +660,7 @@
         },
         "security": [
           {
-            "bearerAuth": [],
-            "apiKeyAuth": []
+            "bearerAuth": []
           }
         ]
       }
@@ -585,21 +673,8 @@
             "name": "username",
             "in": "path",
             "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
             "schema": {
-              "type": "object",
-              "properties": {
-                "description": {
-                  "example": "any"
-                },
-                "amount": {
-                  "example": "any"
-                }
-              }
+              "type": "string"
             }
           }
         ],
@@ -622,10 +697,26 @@
         },
         "security": [
           {
-            "bearerAuth": [],
-            "apiKeyAuth": []
+            "bearerAuth": []
           }
-        ]
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "example": "any"
+                  },
+                  "amount": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
       },
       "get": {
         "description": "",
@@ -634,7 +725,9 @@
             "name": "username",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -656,8 +749,7 @@
         },
         "security": [
           {
-            "bearerAuth": [],
-            "apiKeyAuth": []
+            "bearerAuth": []
           }
         ]
       }
@@ -670,13 +762,17 @@
             "name": "username",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "indexcount",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -701,8 +797,7 @@
         },
         "security": [
           {
-            "bearerAuth": [],
-            "apiKeyAuth": []
+            "bearerAuth": []
           }
         ]
       },
@@ -713,13 +808,17 @@
             "name": "username",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "indexcount",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -744,8 +843,7 @@
         },
         "security": [
           {
-            "bearerAuth": [],
-            "apiKeyAuth": []
+            "bearerAuth": []
           }
         ]
       }
