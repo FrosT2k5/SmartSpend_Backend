@@ -48,8 +48,8 @@ router.post('/',
 
       res.cookie('refreshToken', refreshToken, {
         secure: true,
+        SameSite: "Lax",
         httpOnly: true,
-        sameSite: 'strict', 
         maxAge: 7 * 24 * 60 * 60 * 1000, // Set the expiration time to 7 days
       });
   
@@ -83,6 +83,11 @@ router.post('/',
     // No refresh token found, prompt user to log in
     res.status(401).json({ error: 'Refresh token not found' });
   }
+  })
+
+  router.post("/logout", (req, res) => {
+    res.clearCookie("refreshToken");
+    res.status(200).json({"message": "logged out successfully."})
   })
 
 module.exports = router;
