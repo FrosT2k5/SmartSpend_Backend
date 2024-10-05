@@ -4,6 +4,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const swaggerUi = require('swagger-ui-express');
+const cors = require('cors');
 
 var indexRouter = require('./routes/index');
 var userRouter = require('./routes/user');
@@ -15,9 +16,11 @@ var transactionRouter = require('./routes/transactions')
 
 var app = express();
 const swaggerDocument = require('./swagger-output.json');
-var corsOptions = {
-  origin: 'http://localhost:5173/',
-  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+const corsOptions = {
+  origin: 'http://localhost:5173',
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  credentials: true,
+  optionsSuccessStatus: 200,
 }
 
 // view engine setup
