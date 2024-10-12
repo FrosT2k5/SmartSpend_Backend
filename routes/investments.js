@@ -67,16 +67,11 @@ router.get('/:username/investments', async (req, res) => {
     let currentUser = await User.findOne({ username }, "investments").populate({
         path: "investments",
         select: '-_id -__v',
+        populate: "transactions"
     });
     investments = currentUser.investments;
 
     try {
-        for (let inv of investments) {
-            await inv.populate({
-                path: "transactions",
-                select: '-_id -__v',
-            });
-        }
         res.status(200).json(investments);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching investments', error: error.message });

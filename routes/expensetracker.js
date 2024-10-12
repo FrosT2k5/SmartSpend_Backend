@@ -68,6 +68,7 @@ router.get('/:username/expenses', async (req, res) => {
         let user = await User.findOne({ username }, "expenseTrackers").populate({
             path: "expenseTrackers",
             select: '-_id -__v',
+            populate: "transactions",
         });
 
         if (!user || !user.expenseTrackers) {
@@ -75,14 +76,6 @@ router.get('/:username/expenses', async (req, res) => {
         }
 
         let expenseTrackers = user.expenseTrackers;
-
-        // Clean up the data to remove unnecessary fields
-        for (let exp of expenseTrackers) {
-            exp.populate({
-                "path": "transactions", 
-                "select": "-_id -__v"
-            });
-        }
         res.status(200).json(expenseTrackers);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching expense trackers', error });
