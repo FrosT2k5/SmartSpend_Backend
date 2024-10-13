@@ -94,9 +94,9 @@ router.get('/:username/expenses/:indexcount', async (req, res) => {
         let user = await User.findOne({ "username": username }, "expenseTrackers").populate({
             path: "expenseTrackers",
             select: '-_id -__v',
+            populate: "transactions",
         });
 
-        console.log(user);
         if (!user || !user.expenseTrackers) {
             return res.status(404).json({ message: 'User or expense trackers not found' });
         }
@@ -109,11 +109,6 @@ router.get('/:username/expenses/:indexcount', async (req, res) => {
         if (isNaN(index) || index < 1 || index >= user.expenseTrackers.length+1) {
             return res.status(400).json({ message: 'Invalid index count' });
         }
-
-        expense.populate({
-                "path": "transactions", 
-                "select": "-_id -__v"
-        })
 
         res.status(200).json(expense);
     } catch (error) {
@@ -130,12 +125,11 @@ router.put('/:username/expenses/:indexcount', async (req, res) => {
         "bearerAuth": [],
         }] */
     const { username, indexcount } = req.params;
-    const updatedData = req.body;
+    const { amount, description } = req.body;
 
     try {
-        let user = await User.findOne({ "username": username }, "expenseTrackers").populate({
+        let user = await User.findOne({ "username": username }).populate({
             path: "expenseTrackers",
-            select: '-_id -__v',
         });
 
         if (!user || !user.expenseTrackers) {
@@ -147,21 +141,41 @@ router.put('/:username/expenses/:indexcount', async (req, res) => {
         if (isNaN(index) || index < 1 || index >= user.expenseTrackers.length+1) {
             return res.status(400).json({ message: 'Invalid index count' });
         }
+        
+        if (amount > user.expenseTrackers[index-1].currentAmount) {
+            return res.status(403).json({"message": "Expense isn't allocated the transaction amount"})
+        }
+
+        if (amount > user.currentBalance) {
+            return res.status(403).json({"message": "Your account doesn't have enough balance"})
+        }
+
+        let currentExpense = user.expenseTrackers[index - 1];
+
+        const newExpenseTransaction = createNewTransaction(description, amount);
+        const newUserTransaction = createNewTransaction(`Move money to expense: ${currentExpense.name}`, -amount)
+
+        user.currentBalance -= parseInt(amount);
+        user.transactions.push(await newUserTransaction);
+
+
+        currentExpense.usedValue += parseInt(amount);
+        currentExpense.currentAmount -= parseInt(amount);
 
         // Update the expense tracker at the specified index
-        user.expenseTrackers[index+1] = { ...user.expenseTrackers[index], ...updatedData };
+        currentExpense.transactions.push(await newExpenseTransaction);
+        currentExpense.populate("transactions");
 
         // Save the updated user document
-        await User.updateOne(
-            { username },
-            { expenseTrackers: user.expenseTrackers }
-        );
+        await user.save();
+        await currentExpense.save();
 
-        res.status(200).json({ message: 'Expense updated successfully', expense: user.expenseTrackers[index] });
+        res.status(200).json({ message: 'Expense updated successfully' });
     } catch (error) {
-        res.status(500).json({ message: 'Error updating expense', error });
+        res.status(500).json({ message: 'Error updating expense', error: error.message });
     }
 });
+
 // Delete Expense
 router.delete('/:username/expenses/:indexcount', async (req, res) => {
     /* #swagger.security = [{
