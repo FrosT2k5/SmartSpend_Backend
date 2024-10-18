@@ -156,16 +156,29 @@ router.delete('/:username/investments/:investmentId', async (req, res) => {
     /* #swagger.security = [{
         "bearerAuth": [],
         }] */
-    const { investmentId } = req.params;
+    const { username, investmentId } = req.params;
 
     try {
+        let investment = await Investment.findOne({ investmentId }).lean();
+        const user = await User.findOne({username});
+        const investedAmount = investment.currentValue;
+
+        await User.updateOne( {username: username}, 
+            { $pull: { investments: investment._id } }
+        );
+
+        const newUserTransaction = createNewTransaction(`Add invested money from: ${investment.type}`, investedAmount)
+        user.currentBalance += parseInt(investedAmount);
+        user.transactions.push(await newUserTransaction);
+        user.save()
+
         const result = await Investment.deleteOne({ investmentId });
         if (result.deletedCount === 0) {
             return res.status(404).json({ message: 'Investment not found' });
         }
         res.status(200).json({ message: 'Investment deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: 'Error deleting investment', error });
+        res.status(500).json({ message: 'Error deleting investment', "error:": error.message });
     }
 });
 
