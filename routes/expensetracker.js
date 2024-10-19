@@ -9,6 +9,7 @@ const router = express.Router();
 
 router.use(verifyToken);
 router.param('username', verifyLoggedInUser)
+
 // Add Expense
 router.post(
     '/:username/expenses',
@@ -33,19 +34,21 @@ router.post(
 
         const { name, currentAmount, usedValue, expiryOrRenewal, modeOfPayment } = req.body;
 
-        const transaction = await createNewTransaction("Initial Transaction", currentAmount);
-
-
-        const expense = await ExpenseTracker.create({
-            name,
-            currentAmount,
-            usedValue,
-            expiryOrRenewal,
-            modeOfPayment,
-            transactions: [transaction],
-        });
-
         try {
+
+            const transaction = await createNewTransaction("Create Expense", currentAmount);
+
+
+            const expense = await ExpenseTracker.create({
+                name,
+                currentAmount,
+                usedValue,
+                expiryOrRenewal,
+                modeOfPayment,
+                transactions: [transaction],
+            });
+
+
             await User.updateOne(
                 { username: username },
                 { $push: { expenseTrackers: expense._id } }
@@ -67,7 +70,7 @@ router.get('/:username/expenses', async (req, res) => {
     try {
         let user = await User.findOne({ username }, "expenseTrackers").populate({
             path: "expenseTrackers",
-            select: '-_id -__v',
+            select: '-__v',
             populate: "transactions",
         });
 
@@ -93,7 +96,7 @@ router.get('/:username/expenses/:indexcount', async (req, res) => {
     try {
         let user = await User.findOne({ "username": username }, "expenseTrackers").populate({
             path: "expenseTrackers",
-            select: '-_id -__v',
+            select: '-__v',
             populate: "transactions",
         });
 
@@ -185,7 +188,10 @@ router.delete('/:username/expenses/:indexcount', async (req, res) => {
 
     try {
         // Find the user and their expense trackers
-        const user = await User.findOne({ username }, "expenseTrackers").lean();
+        const user = await User.findOne({ username }).populate({
+            path: "expenseTrackers",
+        });
+;
 
         if (!user || !user.expenseTrackers) {
             return res.status(404).json({ message: 'User or expense trackers not found' });
@@ -193,22 +199,23 @@ router.delete('/:username/expenses/:indexcount', async (req, res) => {
 
         // Convert indexcount to a number
         const index = parseInt(indexcount);
-        if (isNaN(index) || index < 0 || index >= user.expenseTrackers.length) {
+        if (isNaN(index) || index < 1 || index >= user.expenseTrackers.length+1) {
             return res.status(400).json({ message: 'Invalid index count' });
         }
 
+        const expenseId = await user.expenseTrackers[index-1]._id;
+
+        await ExpenseTracker.deleteOne({ expenseId });
         // Remove the expense tracker at the specified index
-        user.expenseTrackers.splice(index, 1);
+        user.expenseTrackers.splice(index-1, 1);
 
         // Save the updated user document
-        await User.updateOne(
-            { username },
-            { expenseTrackers: user.expenseTrackers }
-        );
+        await user.save();
+
 
         res.status(200).json({ message: 'Expense deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: 'Error deleting expense', error });
+        res.status(500).json({ message: 'Error deleting expense', "error": error.message });
     }
 });
 
