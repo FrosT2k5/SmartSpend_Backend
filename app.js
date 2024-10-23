@@ -31,10 +31,8 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors(corsOptions))
 
-app.use('/', indexRouter);
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/api/user', userRouter);
 app.use('/api/login', loginRouter);
@@ -42,6 +40,7 @@ app.use('/api/register', registerRouter);
 app.use('/api', investmentRouter);
 app.use('/api', expenseTrackerRouter);
 app.use('/api', transactionRouter)
+app.use('/',express.static(path.join(__dirname, 'public')));
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
