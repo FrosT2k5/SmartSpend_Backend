@@ -37,9 +37,9 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/user', userRouter);
 app.use('/login', loginRouter);
 app.use('/register', registerRouter);
-app.use('/', investmentRouter);
-app.use('/', expenseTrackerRouter);
-app.use('/', transactionRouter)
+app.use('/:userId', investmentRouter);
+app.use('/:userId', expenseTrackerRouter);
+app.use('/:userId', transactionRouter)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
