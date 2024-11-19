@@ -17,7 +17,7 @@ var transactionRouter = require('./routes/transactions')
 var app = express();
 const swaggerDocument = require('./swagger-output.json');
 const corsOptions = {
-  origin: 'http://localhost:5173',
+  origin: ['http://localhost:5173', 'https://frost2k5.is-a.dev'],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   credentials: true,
   optionsSuccessStatus: 200,
