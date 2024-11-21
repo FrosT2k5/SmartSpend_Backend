@@ -13,7 +13,16 @@ const doc = {
         }
     }
   },
-  host: 'localhost:3000',
+  servers: [
+    {
+      url: "https://smartspend-h6cxb0dng5ardeef.centralindia-01.azurewebsites.net/",
+      description: "Public API Server"
+    },
+    {
+      url: "http://localhost:3000/",
+      description: "LocalHost Server"
+    }
+  ],
 };
 
 const outputFile = './swagger-output.json';
